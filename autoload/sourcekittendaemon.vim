@@ -25,10 +25,30 @@ function! s:LoadPythonScript()
   execute s:python_version . 'source_kitten_daemon_vim = SourceKittenDaemonVim()'
 endfunction
 
-function! s:GetByteOfLastDot()
+function! s:GetCompleteCol()
+  let [num, pCol] = searchpos("(", "bn", line("."))
+  let [num, dotCol] = searchpos("\\.", "bn", line("."))
+  let col = dotCol > pCol ? dotCol : pCol
+  let [num, spaceCol] = searchpos(" ", "bn", line("."))
+  " find space, this is invalid position for comletion
+  if spaceCol > col
+      return 0
+  else
+      return col
+  endif
+endfunction
+
+function! s:GetCompleteOffset()
   let line = line2byte(line("."))
-  let [lnum, col] = searchpos("\\.", "bn", line("."))
-  return line + col
+  let col = s:GetCompleteCol()
+  if col == 0
+      return [0, ""]
+  else
+      let [num, spaceCol] = searchpos(" ", "bn", line("."))
+      let lineString = getline(".")
+      let completePart = strpart(lineString, spaceCol, col-spaceCol)
+      return [line + col - 1, completePart]
+  endif
 endfunction
 
 function! s:CompletionFinished(item)
@@ -43,14 +63,16 @@ endfunction
 
 function! sourcekittendaemon#Complete(findstart, base)
   if a:findstart
-    let [lnum, col] = searchpos("\\.", "bn", line("."))
-    return col
+      return s:GetCompleteCol()
   endif
 
   update
+
+  let [col, completePart] = s:GetCompleteOffset()
   call s:LoadPythonScript()
   execute "python source_kitten_daemon_vim.complete(prefix = '" . a:base
         \ . "', path = '" . expand("%:p")
-        \ . "', offset = " . s:GetByteOfLastDot() . ")"
+        \ . "', completePart = '" . completePart
+        \ . "', offset = " . col . ")"
   return s:result
 endfunction
