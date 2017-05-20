@@ -28,6 +28,9 @@ class SourceKittenDaemonVim(object):
 
     def complete(self, prefix, path, completePart, offset):
         try:
+            if offset == 0:
+                vim.command('let s:result = ' + str([]))
+                return
             cls = SourceKittenDaemonVim
             response = self.__daemon.complete(path, offset, completePart)
             completions = [
