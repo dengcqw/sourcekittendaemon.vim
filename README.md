@@ -27,3 +27,13 @@ If you don't have a preferred plugin installation method, check out
 those checkout [swift.vim](https://github.com/keith/swift.vim)
 
 [sdk]: https://github.com/terhechte/SourceKittenDaemon
+
+## additional improvement
+
+- complete for "("
+- pass string before dot to server for cache
+- skip if there are blanks between dot or "(" with cursor
+- jump to placeholder, and <CR> to remove patten "<#>"
+
+**tips**   if set g:ycm_semantic_triggers for swift in vimrc, we can enjoy YCM.  
+I also fork [SourceKittenDaemon][https://github.com/terhechte/SourceKittenDaemon] to add cache and sort result
