@@ -53,6 +53,9 @@ function! s:GetCompleteOffset()
 endfunction
 
 function! s:CompletionFinished(item)
+  if has_key(a:item, "word") == 0
+    return
+  endif
   let word = a:item["word"]
   if word !~ "("
     return
