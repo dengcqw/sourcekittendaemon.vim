@@ -6,7 +6,9 @@ endif
 let s:plug = expand('<sfile>:p:h:h')
 let s:python_version = 'python '
 let s:pyfile_version = 'pyfile '
-let sourcekittendaemon#place_holder_regex = "<#\[^><].*#>"
+let sourcekittendaemon#place_holder_regex = "<#[^#]\+#>"
+let s:pat = '<#[^#]\+#>'
+
 
 augroup sourcekittendaemon_complete
   autocmd!
@@ -82,12 +84,38 @@ function! sourcekittendaemon#Complete(findstart, base)
 endfunction
 
 function! sourcekittendaemon#JumpToPlaceHolder()
-    let [num, col] = searchpos("<#\[^><].*#>", "", line("."))
-    " l : is noamal model move cursor left, for exit insert model, cursor is outside of place holder
-    " va> : select all <> place holder
-    call feedkeys("\<Esc>lva>")
+  let [_, lnum, column, offset] = getpos('.')
+  let place = search(s:pat, 'zn', lnum)
+  if !place
+    call cursor(lnum, 1, offset)
+  endif
+  let [_, start] = searchpos(s:pat, 'z', lnum)
+  if start == 0
+    call cursor(lnum, column, offset)
     return ''
+  endif
+  let [_, end] = searchpos(s:pat, 'enz', lnum)
+  if start == end
+    return ''
+  endif
+
+  let range_cmd = ''
+  if mode() !=? 'n'
+    let range_cmd .= "\<ESC>"
+  endif
+
+  let range_cmd .= 'v'.lnum.'G'.end.'|o'.lnum.'G'.start."|o\<C-G>"
+  call feedkeys(range_cmd)
+  return ''
 endfunction
+
+"function! sourcekittendaemon#JumpToPlaceHolder()
+    "let [num, col] = searchpos("<#\[^><].*#>", "", line("."))
+    "" l : is noamal model move cursor left, for exit insert model, cursor is outside of place holder
+    "" va> : select all <> place holder
+    "call feedkeys("\<Esc>lva>")
+    "return ''
+"endfunction
 
 function! sourcekittendaemon#RemovePlaceHolderDecoration()
     let pos_1 = getpos("'<")

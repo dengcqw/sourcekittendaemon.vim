@@ -19,9 +19,7 @@ class SourceKittenDaemon(object):
 
 class SourceKittenDaemonVim(object):
     # TODO: add token jump
-    __token_regexs = []#[re.compile("<#T##|##([^#].*)#>"), re.compile("#>")]
-    # <#T##dic: [String : AnyObject]##[String : AnyObject]#>
-    # <#T##allocator: CFAllocator!##CFAllocator!#>, <#T##localeID: CFLocaleIdentifier!##CFLocaleIdentifier!#>
+    __token_regexs = []
 
     def __init__(self, port=8085):
         self.__daemon = SourceKittenDaemon(port)
@@ -52,10 +50,7 @@ class SourceKittenDaemonVim(object):
 
     @classmethod
     def remove_tokens(cls, string):
-        result = string
-        for regex in cls.__token_regexs:
-            result = re.sub(regex, "", result)
-        return result
+        return string
 
     @classmethod
     def matches(cls, prefix, dictionary):
