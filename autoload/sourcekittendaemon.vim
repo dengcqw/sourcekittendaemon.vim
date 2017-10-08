@@ -137,7 +137,6 @@ function! sourcekittendaemon#JumpToPlaceHolder()
     return ''
 endfunction
 
-" it is ok to remove then all
 function! sourcekittendaemon#RemovePlaceHolderDecoration()
     let pos_1 = getpos("'<")
     let pos_2 = getpos("'>")
