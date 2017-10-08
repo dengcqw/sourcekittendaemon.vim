@@ -6,8 +6,10 @@ endif
 let s:plug = expand('<sfile>:p:h:h')
 let s:python_version = 'python '
 let s:pyfile_version = 'pyfile '
-let sourcekittendaemon#place_holder_regex = "<#[^#]\+#>"
+let sourcekittendaemon#place_holder_regex = "<#\[^><].*#>"
 let s:pat = '<#[^#]\+#>'
+
+let s:lastComplete = ""
 
 
 augroup sourcekittendaemon_complete
@@ -75,48 +77,67 @@ function! sourcekittendaemon#Complete(findstart, base)
   update
 
   let [col, completePart] = s:GetCompleteOffset()
+  let path = expand("%:p")
   call s:LoadPythonScript()
-  execute "python source_kitten_daemon_vim.complete(prefix = '" . a:base
-        \ . "', path = '" . expand("%:p")
-        \ . "', completePart = '" . completePart
-        \ . "', offset = " . col . ")"
+  let completeParams = "prefix='" . a:base
+              \ . "',path='" . path
+              \ . "',completePart='" . completePart
+              \ . "',offset=" . col
+  if s:lastComplete == completeParams
+      if g:sourcekittendaemon_type == 0
+          let g:sourcekittendaemon_type = 1
+      else
+          let g:sourcekittendaemon_type = 0
+      endif
+  else
+      let g:sourcekittendaemon_type = 0
+  endif
+  let s:lastComplete = completeParams
+  execute "python source_kitten_daemon_vim.complete(" . completeParams . ",completeType=" . g:sourcekittendaemon_type . ")"
   return s:result
 endfunction
 
-function! sourcekittendaemon#JumpToPlaceHolder()
-  let [_, lnum, column, offset] = getpos('.')
-  let place = search(s:pat, 'zn', lnum)
-  if !place
-    call cursor(lnum, 1, offset)
-  endif
-  let [_, start] = searchpos(s:pat, 'z', lnum)
-  if start == 0
-    call cursor(lnum, column, offset)
-    return ''
-  endif
-  let [_, end] = searchpos(s:pat, 'enz', lnum)
-  if start == end
-    return ''
-  endif
-
-  let range_cmd = ''
-  if mode() !=? 'n'
-    let range_cmd .= "\<ESC>"
-  endif
-
-  let range_cmd .= 'v'.lnum.'G'.end.'|o'.lnum.'G'.start."|o\<C-G>"
-  call feedkeys(range_cmd)
-  return ''
-endfunction
-
 "function! sourcekittendaemon#JumpToPlaceHolder()
-    "let [num, col] = searchpos("<#\[^><].*#>", "", line("."))
-    "" l : is noamal model move cursor left, for exit insert model, cursor is outside of place holder
-    "" va> : select all <> place holder
-    "call feedkeys("\<Esc>lva>")
+  "let [_, lnum, column, offset] = getpos('.')
+  "let place = search(s:pat, 'zn', lnum)
+  "if !place
+    "call cursor(lnum, 1, offset)
+  "endif
+  "let [_, start] = searchpos(s:pat, 'z', lnum)
+  "if start == 0
+    "call cursor(lnum, column, offset)
     "return ''
+  "endif
+  "let [_, end] = searchpos(s:pat, 'enz', lnum)
+  "if start == end
+    "return ''
+  "endif
+
+  "let range_cmd = ''
+  "if mode() !=? 'n'
+    "let range_cmd .= "\<ESC>"
+  "endif
+
+  "let range_cmd .= 'v'.lnum.'G'.end.'|o'.lnum.'G'.start."|o\<C-G>"
+  "call feedkeys(range_cmd)
+  "return ''
 "endfunction
 
+function! sourcekittendaemon#JumpToPlaceHolder()
+    let [num, col] = searchpos("<#\[^><].*#>", "be", line("."))
+    if col == 0
+        let [num_1, col_1] = searchpos("<#\[^><].*#>", "e", line("."))
+        if col_1 == 0
+            return ''
+        endif
+    endif
+    " l : is noamal model move cursor left, for exit insert model, cursor is outside of place holder
+    " va> : select all <> place holder
+    call feedkeys("\<Esc>lva>")
+    return ''
+endfunction
+
+" it is ok to remove then all
 function! sourcekittendaemon#RemovePlaceHolderDecoration()
     let pos_1 = getpos("'<")
     let pos_2 = getpos("'>")
