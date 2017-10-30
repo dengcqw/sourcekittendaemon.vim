@@ -124,16 +124,20 @@ endfunction
 "endfunction
 
 function! sourcekittendaemon#JumpToPlaceHolder()
-    let [num, col] = searchpos("<#\[^><].*#>", "be", line("."))
+    let [num, col] = searchpos("<#\[^><].*#>", "bn", line("."))
     if col == 0
-        let [num_1, col_1] = searchpos("<#\[^><].*#>", "e", line("."))
+        let [num_1, col_1] = searchpos("<#\[^><].*#>", "n", line("."))
         if col_1 == 0
             return ''
         endif
     endif
     " l : is noamal model move cursor left, for exit insert model, cursor is outside of place holder
     " va> : select all <> place holder
-    call feedkeys("\<Esc>lva>")
+    if col == 0
+        call feedkeys("f<va<")
+    else
+        call feedkeys("F>va>")
+    endif
     return ''
 endfunction
 
