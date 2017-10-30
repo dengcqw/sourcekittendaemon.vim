@@ -2,6 +2,7 @@ import json
 import re
 import urllib2
 import vim
+import threading
 
 
 class SourceKittenDaemon(object):
@@ -19,18 +20,33 @@ class SourceKittenDaemon(object):
         return response
         # return json.loads(response)
 
-
 class SourceKittenDaemonVim(object):
     def __init__(self, port=8080):
         self.__daemon = SourceKittenDaemon(port)
+        self._lock = threading.Lock()
+        self._currentSession = ""
 
     def complete(self, prefix, path, completePart, offset, completeType):
+        self._lock.acquire()
+        if self._currentSession == self.calcSession(prefix, path, completePart, offset, completeType):
+            self._lock.release()
+            return
+        self._lock.release()
+
+        t = threading.Thread(target=self.complete_thread, args=(prefix, path, completePart, offset, completeType), name='thread')
+        t.start()
+        t.join()
+
+    def complete_thread(self, prefix, path, completePart, offset, completeType):
         try:
             if offset == 0:
                 vim.command('let s:result = ' + str([]))
                 return
             cls = SourceKittenDaemonVim
             response = self.__daemon.complete(prefix, path, completePart, completeType, offset)
+            self._lock.acquire()
+            self._currentSession = ""
+            self._lock.release()
             vim.command('let s:result = ' + str(response))
             # completions = [ x for x in map(cls.convert_to_completions, response) ]
             # vim.command('let s:result = ' + str(completions))
@@ -46,3 +62,9 @@ class SourceKittenDaemonVim(object):
             }
         except KeyError:
             return None
+
+    def calcSession(self, prefix, path, completePart, offset, completeType):
+        return path+str(offset)+completePart
+
+# if __name__=='__main__':
+    # SourceKittenDaemonVim().complete("1","1","1","1","1")
