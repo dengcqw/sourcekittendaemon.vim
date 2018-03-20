@@ -83,17 +83,8 @@ function! sourcekittendaemon#Complete(findstart, base)
               \ . "',path='" . path
               \ . "',completePart='" . completePart
               \ . "',offset=" . col
-  if s:lastComplete == completeParams
-      if g:sourcekittendaemon_type == 0
-          let g:sourcekittendaemon_type = 1
-      else
-          let g:sourcekittendaemon_type = 0
-      endif
-  else
-      let g:sourcekittendaemon_type = 0
-  endif
   let s:lastComplete = completeParams
-  execute "python source_kitten_daemon_vim.complete(" . completeParams . ",completeType=" . g:sourcekittendaemon_type . ")"
+  execute "python source_kitten_daemon_vim.complete(" . completeParams . ")"
   return s:result
 endfunction
 
