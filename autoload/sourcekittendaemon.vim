@@ -66,7 +66,6 @@ function! s:CompletionFinished(item)
   endif
 
   call cursor(line("."), 1)
-  call sourcekittendaemon#JumpToPlaceHolder()
 endfunction
 
 function! sourcekittendaemon#Complete(findstart, base)

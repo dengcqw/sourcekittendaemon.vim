@@ -5,7 +5,7 @@ if s:hi_id > 0
 endif
 let s:hi_id = matchadd(s:hi_group_visual, sourcekittendaemon#place_holder_regex)
 
-"vnoremap <cr> :call sourcekittendaemon#RemovePlaceHolderDecoration()<cr>
+vnoremap <cr> :call sourcekittendaemon#RemovePlaceHolderDecoration()<cr>
 
 if exists("g:sourcekittendaemon_jump_placeholder")
     exec "inoremap " . g:sourcekittendaemon_jump_placeholder . " <Esc>:call sourcekittendaemon#JumpToPlaceHolder()<cr>"
